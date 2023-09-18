@@ -1,0 +1,454 @@
+Policies
+examples
+Denychangestospecificroles code in yaml
+---
+Version: '2012-10-17'
+Statement:
+- Effect: Deny
+  Action:
+  - iam:AttachRolePolicy
+  - iam:DeleteRole
+  - iam:DeleteRolePermissionsBoundary
+  - iam:DeleteRolePolicy
+  - iam:DetachRolePolicy
+  - iam:PutRolePermissionsBoundary
+  - iam:PutRolePolicy
+  - iam:UpdateAssumeRolePolicy
+  - iam:UpdateRole
+  - iam:UpdateRoleDescription
+  Resource:
+  - arn:aws:iam::*:role/name-of-role-to-deny #org level policy, so does not have to be dynamically configured
+  Condition:
+    StringNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/name-of-admin-role-to-allow
+
+Regions-restrictions
+Approve servicemanagement in yaml
+---
+Version: '2012-10-17'
+Statement:
+- Effect: Deny
+  NotAction:
+  - a4b:*
+  - acm:*
+  - aws-marketplace-management:*
+  - aws-marketplace:*
+  - aws-portal:*
+  - awsbillingconsole:*
+  - budgets:*
+  - ce:*
+  - chime:*
+  - cloudfront:*
+  - config:*
+  - cur:*
+  - directconnect:*
+  - ec2:DescribeRegions
+  - ec2:DescribeTransitGateways
+  - ec2:DescribeVpnGateways
+  - fms:*
+  - globalaccelerator:*
+  - health:*
+  - iam:*
+  - importexport:*
+  - kms:*
+  - mobileanalytics:*
+  - networkmanager:*
+  - organizations:*
+  - pricing:*
+  - route53:*
+  - route53domains:*
+  - s3:GetAccountPublic*
+  - s3:ListAllMyBuckets
+  - s3:PutAccountPublic*
+  - shield:*
+  - sts:*
+  - support:*
+  - trustedadvisor:*
+  - waf-regional:*
+  - waf:*
+  - wafv2:*
+  - wellarchitected:*
+  Resource: "*"
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+
+entral-logging.yaml
+Statement:
+  - Effect: Deny
+    Action:
+      
+      - logs:DeleteLogGroup
+      - logs:DeleteLogStream
+      - logs:DisassociateKmsKey
+      - logs:PutRetentionPolicy
+      - logs:StopQuery
+      - logs:UpdateLogDelivery
+      - logs:UpdateLogGroup
+      - logs:UpdateLogStream
+      - logs:UpdateMetricFilter
+      - logs:UpdateSubscriptionFilter
+    Resource: "*"
+    Condition:
+      StringEquals:
+        aws:PrincipalArn: "arn:aws:iam::123456789012:role/central-logging-role"
+
+Data lossprevention.yaml
+---
+Version: '2012-10-17'
+Statement:
+- Sid: PreventVPCFlowLogDeletion
+  Effect: Deny
+  Action:
+  - ec2:DeleteFlowLogs
+  - logs:DeleteLogGroup
+  - logs:DeleteLogStream
+  Resource: "*"
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+- Sid: PreventCloudWatchDisablingAlteration
+  Effect: Deny
+  Action:
+  - cloudwatch:DeleteAlarms
+  - cloudwatch:DeleteDashboards
+  - cloudwatch:DisableAlarmActions
+  - cloudwatch:PutMetricAlarm
+  - cloudwatch:SetAlarmState
+  Resource: "*"
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+- Sid: PreventBackupDeletion
+  Effect: Deny
+  Action:
+  - backup:DeleteBackupPlan
+  - backup:DeleteBackupSelection
+  - backup:DeleteBackupVault
+  - backup:DeleteBackupVaultAccessPolicy
+  - backup:DeleteBackupVaultNotifications
+  - backup:DeleteRecoveryPoint
+  - backup:PutBackupVaultAccessPolicy
+  - backup:PutBackupVaultNotifications
+  - backup:UpdateBackupPlan
+  - backup:UpdateRecoveryPointLifecycle
+  - backup:UpdateRegionSettings
+  Resource: "*"
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+- Sid: PreventGlacierVaultDeletion
+  Effect: Deny
+  Action:
+  - glacier:DeleteArchive
+  - glacier:DeleteVault
+  Resource: "*"
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+- Sid: PreventAccessAnalyzerDeletion
+  Effect: Deny
+  Action:
+  - access-analyzer:DeleteAnalyzer
+  Resource: "*"
+- Sid: PreventGuardDutyDeletion
+  Effect: Deny
+  Action:
+  - guardduty:DeleteDetector
+  - guardduty:DeleteInvitations
+  - guardduty:DeleteIPSet
+  - guardduty:DeleteMembers
+  - guardduty:DeleteThreatIntelSet
+  - guardduty:DisassociateFromMasterAccount
+  - guardduty:DisassociateMembers
+  - guardduty:StopMonitoringMembers
+  - guardduty:UpdateDetector
+  Resource: "*"
+- Sid: PreventEBSEncryptionDisable
+  Effect: Deny
+  Action:
+  - ec2:DisableEbsEncryptionByDefault
+  Resource: "*"
+- Sid: PreventSpecificCloudFormationStackAlteration
+  Effect: Deny
+  Action:
+  - cloudformation:CreateChangeSet
+  - cloudformation:CreateStack
+  - cloudformation:CreateStackInstances
+  - cloudformation:CreateStackSet
+  - cloudformation:DeleteChangeSet
+  - cloudformation:DeleteStack
+  - cloudformation:DeleteStackInstances
+  - cloudformation:DeleteStackSet
+  - cloudformation:DetectStackDrift
+  - cloudformation:DetectStackResourceDrift
+  - cloudformation:DetectStackSetDrift
+  - cloudformation:ExecuteChangeSet
+  - cloudformation:SetStackPolicy
+  - cloudformation:StopStackSetOperation
+  - cloudformation:UpdateStack
+  - cloudformation:UpdateStackInstances
+  - cloudformation:UpdateStackSet
+  - cloudformation:UpdateTerminationProtection
+  Resource:
+  - arn:aws:cloudformation:*:*:stack/
+  Condition:
+    ArnNotLike:
+      aws:PrincipalARN: arn:aws:iam::*:role/Administrator
+- Sid: PreventRootUserUsage
+  Action: "*"
+  Resource: "*"
+  Effect: Deny
+  Condition:
+    StringLike:
+      aws:PrincipalArn:
+      - arn:aws:iam::*:root
+- Sid: PreventCloudTrailAlteration
+  Effect: Deny
+  Action:
+  - cloudtrail:DeleteTrail
+  - cloudtrail:PutEventSelectors
+  - cloudtrail:StopLogging
+  - cloudtrail:UpdateTrail
+  Resource: "*"
+- Sid: PreventLeaveOrganization
+  Effect: Deny
+  Action:
+  - organizations:LeaveOrganization
+  Resource: "*"
+
+Deny log-modification.yaml
+Statement:
+  - Sid: DenyLogModification
+    Effect: Deny
+    Action:
+      - logs:DeleteLogGroup
+      - logs:DeleteLogStream
+      - logs:DisassociateKmsKey
+      - logs:PutRetentionPolicy
+      - logs:StopQuery
+      - logs:UpdateLogDelivery
+      - logs:UpdateLogGroup
+      - logs:UpdateLogStream
+      - logs:UpdateMetricFilter
+      - logs:UpdateSubscriptionFilter
+    Resource: "*"
+network perimeter.yaml
+---
+Version: '2012-10-17'
+Statement:
+- Sid: PreventVPCInternetGatewayCreation
+  Effect: Deny
+  Action:
+  - ec2:AttachInternetGateway
+  - ec2:CreateInternetGateway
+  - ec2:CreateEgressOnlyInternetGateway
+  - globalaccelerator:Create*
+  - globalaccelerator:Update*
+  Resource: "*"
+- Sid: RestrictVPCCidrtoIPAM
+  Effect: Deny
+  Action:
+  - ec2:CreateVpc
+  - ec2:AssociateVpcCidrBlock
+  Resource: arn:aws:ec2:*:*:vpc/*
+  Condition:
+    StringNotEquals:
+      ec2:Ipv4IpamPoolId: 'ipam-pool-03897d085c1ad251a' 
+- Sid: PreventDefaultVPCCreation
+  Effect: Deny
+  Action:
+  - ec2:CreateDefaultSubnet
+  - ec2:CreateDefaultVpc
+  Resource: "*"
+- Sid: PreventRAMResourceSharingOutsideOrg
+  Effect: Deny
+  Action:
+  - ram:CreateResourceShare
+  - ram:UpdateResourceShare
+  Resource: "*"
+  Condition:
+    Bool:
+      ram:RequestedAllowsExternalPrincipals: 'true'
+- Sid: PreventCreateLambdaOpenURLs
+  Action:
+  - lambda:CreateFunctionUrlConfig
+  - lambda:UpdateFunctionUrlConfig
+  Resource: arn:aws:arn:aws:lambda:*:*:function/*
+  Effect: Deny
+  Condition:
+    StringNotEquals:
+      lambda:FunctionUrlAuthType: AWS_IAM
+
+regional control.yaml
+Version: '2012-10-17'
+Statement:
+- Sid: PreventRegionEnableDisable
+  Effect: Deny
+  Action:
+  - account:EnableRegion
+  - account:DisableRegion
+  Resource: "*"
+
+data.tf
+data "aws_organizations_organization" "this" {}
+
+data "aws_organizations_organizational_units" "root_ous" { # returns all OUs under the root
+  count     = length(local.organizational_unit_names) > 0 ? 1 : 0
+  parent_id = local.root_id
+}
+
+data "aws_organizations_organizational_units" "first_child_ous" { # returns all child OUs directly under the targeted root OU
+  count     = length(local.organizational_unit_names) > 1 ? 1 : 0
+  parent_id = local.root_organizational_unit_id
+}
+
+data "aws_organizations_organizational_units" "second_child_ous" { # returns all child OUs directly under the first child OU
+  count     = length(local.organizational_unit_names) > 2 ? 1 : 0
+  parent_id = local.first_organizational_unit_id
+}
+
+main.tf
+locals {
+  root_id                   = data.aws_organizations_organization.this.roots[0].id
+  is_root                   = var.organizational_unit_path == "/" ? true : false
+  organizational_unit_names = compact(split("/", var.organizational_unit_path))
+
+  root_organizational_unit_ids = length(local.organizational_unit_names) > 0 ? [for ou in data.aws_organizations_organizational_units.root_ous[0].children : ou.id if ou.name == local.organizational_unit_names[0]] : []
+  root_organizational_unit_id  = length(local.root_organizational_unit_ids) > 0 ? local.root_organizational_unit_ids[0] : ""
+
+  first_child_organizational_unit_ids = length(local.organizational_unit_names) > 1 ? [for ou in data.aws_organizations_organizational_units.first_child_ous[0].children : ou.id if ou.name == local.organizational_unit_names[1]] : []
+  first_organizational_unit_id        = length(local.first_child_organizational_unit_ids) > 0 ? local.first_child_organizational_unit_ids[0] : ""
+
+  second_child_organizational_unit_ids = length(local.organizational_unit_names) > 2 ? [for ou in data.aws_organizations_organizational_units.second_child_ous[0].children : ou.id if ou.name == local.organizational_unit_names[2]] : []
+  second_organizational_unit_id        = length(local.second_child_organizational_unit_ids) > 0 ? local.second_child_organizational_unit_ids[0] : ""
+
+  target_organizational_unit_id = local.is_root ? local.root_id : coalesce(local.second_organizational_unit_id, local.first_organizational_unit_id, local.root_organizational_unit_id, local.root_id)
+
+  # SCP descriptions
+  description = {
+    RestrictToSpecifiedRegions  = "Enables actions only within the specified regions: ${join(",", var.regions)}."
+    DenySpecifiedRegions        = "Disables actions within the specified regions: ${join(",", var.regions)}."
+    DenyLeaveOrganization       = "Prevents accounts from leaving the Organization."
+    DenyChangesToSpecifiedRoles = "Disables changes to a list of specified roles with an exception for a role."
+    DenyCloudTrailActions       = "Disables actions that disrupt the flow of Cloud Trail audits."
+    DenyVPCDeleteFlowLogs       = "Prevents deletion of VPC Flow Logs."
+    DenyLogModification         = "Prevents disabling, deleting, or tampering with logs."
+  }
+}
+
+################################################################################
+# Service Control Policy
+################################################################################
+
+### Non Region restricting policies
+data "aws_iam_policy_document" "regular" {
+  for_each = { for name in toset(var.scp_names) : name => name if !strcontains(name, "Region") }
+  source_policy_documents = [
+    jsonencode(yamldecode(file("${path.module}/policies/${each.key}.yaml")))
+  ]
+}
+
+resource "aws_organizations_policy" "regular" {
+  for_each = { for name in toset(var.scp_names) : name => name if !strcontains(name, "Region") }
+
+  name        = "${join("", local.organizational_unit_names)}${each.key}SCP"
+  description = local.description[each.key]
+  content     = data.aws_iam_policy_document.regular[each.key].json
+  tags        = var.tags
+}
+
+resource "aws_organizations_policy_attachment" "regular" {
+  for_each = { for name in toset(var.scp_names) : name => name if !strcontains(name, "Region") }
+
+  policy_id = aws_organizations_policy.regular[each.key].id
+  target_id = local.target_organizational_unit_id
+}
+
+
+### Region restricting policies
+data "aws_iam_policy_document" "region" {
+  for_each = { for name in toset(var.scp_names) : name => name if strcontains(name, "Region") }
+
+  source_policy_documents = [
+    jsonencode(yamldecode(templatefile("${path.module}/policies/region-restriction/${each.key}.yaml.tftpl",
+      {
+        regions = var.regions
+      }
+    )))
+  ]
+}
+
+resource "aws_organizations_policy" "region" {
+  for_each = { for name in toset(var.scp_names) : name => name if strcontains(name, "Region") }
+
+  name        = "${join("", local.organizational_unit_names)}${each.key}SCP"
+  description = local.description[each.key]
+  content     = data.aws_iam_policy_document.region[each.key].json
+  tags        = var.tags
+}
+
+resource "aws_organizations_policy_attachment" "region" {
+  for_each = { for name in toset(var.scp_names) : name => name if strcontains(name, "Region") }
+
+  policy_id = aws_organizations_policy.region[each.key].id
+  target_id = local.target_organizational_unit_id
+}
+
+data "aws_iam_policy_document" "central_logging" {
+  source_policy_documents = [
+    jsonencode(yamldecode(file("${path.module}/policies/central-logging.yaml")))
+  ]
+}
+
+resource "aws_organizations_policy" "central_logging" {
+  name        = "${join("", local.organizational_unit_names)}CentralLoggingSCP"
+  description = "Central Logging - SCP, Guardrails conditional deny rule - specific role"
+  content     = data.aws_iam_policy_document.central_logging.json
+  tags        = var.tags
+}
+
+resource "aws_organizations_policy_attachment" "central_logging" {
+  policy_id = aws_organizations_policy.central_logging.id
+  target_id = local.target_organizational_unit_id
+}
+
+variables.tf
+variable "scp_names" {
+  description = "A list of SCP names. These policies will be attached to the OU at the end of the `var.organization_unit_path` variables."
+  type        = list(string)
+  default     = []
+}
+
+variable "organizational_unit_path" {
+  description = "The friendly name path of Organizational Units. Must start with a `/`"
+  type        = string
+  validation {
+    condition     = startswith(var.organizational_unit_path, "/")
+    error_message = "The organizational_unit_path variable must start with `/`."
+  }
+}
+
+variable "regions" {
+  description = "Optional list of regions to be included when applying region-specific SPCs."
+  type        = list(string)
+  default     = []
+}
+
+variable "tags" {
+  description = "Optional tags to be attached to the group of SCPs."
+  type        = map(any)
+  default     = {}
+}
+
+versions.tf
+terraform {
+  required_version = ">= 1.5.3"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
